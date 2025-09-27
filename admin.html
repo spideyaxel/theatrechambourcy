@@ -1,0 +1,595 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Collège André Derain Théâtre</title>
+    <link rel="icon" type="image/png" href="favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .admin-card { backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.95); }
+        .status-success { background-color: #10b981; color: white; }
+        .status-failure { background-color: #ef4444; color: white; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-600 to-blue-600 min-h-screen p-4">
+
+    <!-- Header compact -->
+    <div class="max-w-6xl mx-auto mb-6">
+        <div class="admin-card rounded-xl shadow-lg p-4 flex items-center justify-between">
+            <h1 class="text-2xl font-bold text-gray-800 flex items-center">
+                🛡️ Admin Panel
+            </h1>
+            <div class="flex gap-2">
+                <button onclick="refreshData()" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-sm">🔄 Refresh</button>
+                <button onclick="clearAllConnexions()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-sm">🗑️ Clear</button>
+                <a href="index.html" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1.5 rounded text-sm">🏠 Site</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats compactes -->
+    <div class="max-w-6xl mx-auto mb-6">
+        <div class="admin-card rounded-xl shadow-lg p-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div>
+                    <div class="text-2xl font-bold text-blue-600" id="total-connexions">0</div>
+                    <div class="text-xs text-gray-600">Total</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-green-600" id="connexions-reussies">0</div>
+                    <div class="text-xs text-gray-600">Succès</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-red-600" id="connexions-echouees">0</div>
+                    <div class="text-xs text-gray-600">Échecs</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-purple-600" id="taux-reussite">0%</div>
+                    <div class="text-xs text-gray-600">Taux</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tableau compact -->
+    <div class="max-w-6xl mx-auto">
+        <div class="admin-card rounded-xl shadow-lg overflow-hidden">
+            <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+                <h2 class="font-bold text-gray-800 flex items-center">📊 Connexions</h2>
+                <button onclick="exportData()" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm">💾 CSV</button>
+            </div>
+            
+            <div class="overflow-x-auto max-h-96">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date/Heure</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Utilisateur</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">IP</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="connexions-table" class="divide-y divide-gray-200">
+                        <!-- Données chargées ici -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="no-data" class="p-8 text-center text-gray-500 hidden">
+                <p>📝 Aucune connexion enregistrée</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section de création de posts -->
+    <div class="max-w-6xl mx-auto mt-6">
+        <div class="admin-card rounded-xl shadow-lg p-6">
+            <h3 class="font-bold text-gray-800 mb-4 flex items-center">📝 Créer un nouveau post</h3>
+            <form id="post-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+                    <input type="text" id="post-title" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Contenu</label>
+                    <textarea id="post-content" required rows="4" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Écrivez le contenu de votre post..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Image (URL optionnelle)</label>
+                    <input type="url" id="post-image" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="https://exemple.com/image.jpg">
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium">📤 Publier</button>
+                    <button type="button" onclick="previewPost()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium">👁️ Aperçu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Section de gestion des posts -->
+    <div class="max-w-6xl mx-auto mt-6">
+        <div class="admin-card rounded-xl shadow-lg overflow-hidden">
+            <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+                <h3 class="font-bold text-gray-800 flex items-center">📰 Posts publiés</h3>
+                <button onclick="refreshPosts()" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">🔄 Actualiser</button>
+            </div>
+            
+            <div class="overflow-x-auto max-h-60">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Titre</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Aperçu</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="posts-table" class="divide-y divide-gray-200">
+                        <!-- Posts chargés ici -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="no-posts" class="p-8 text-center text-gray-500 hidden">
+                <p>📄 Aucun post publié</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section de création de textes PDF -->
+    <div class="max-w-6xl mx-auto mt-6">
+        <div class="admin-card rounded-xl shadow-lg p-6">
+            <h3 class="font-bold text-gray-800 mb-4 flex items-center">📄 Ajouter un texte PDF</h3>
+            <form id="pdf-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+                    <input type="text" id="pdf-titre" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea id="pdf-description" required rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Brève description du texte..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">URL du PDF</label>
+                    <input type="url" id="pdf-url" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="https://exemple.com/texte.pdf">
+                </div>
+                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium">📤 Ajouter le texte</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Section de gestion des textes PDF -->
+    <div class="max-w-6xl mx-auto mt-6">
+        <div class="admin-card rounded-xl shadow-lg overflow-hidden">
+            <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+                <h3 class="font-bold text-gray-800 flex items-center">📚 Textes PDF publiés</h3>
+                <button onclick="refreshTextesPdf()" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">🔄 Actualiser</button>
+            </div>
+            
+            <div class="overflow-x-auto max-h-60">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Titre</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="textes-pdf-table" class="divide-y divide-gray-200">
+                        <!-- Textes PDF chargés ici -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="no-textes-pdf" class="p-8 text-center text-gray-500 hidden">
+                <p>📄 Aucun texte PDF publié</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section des messages de contact -->
+    <div class="max-w-6xl mx-auto mt-6">
+        <div class="admin-card rounded-xl shadow-lg overflow-hidden">
+            <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+                <h3 class="font-bold text-gray-800 flex items-center">✉️ Messages de contact</h3>
+                <button onclick="refreshMessagesContact()" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">🔄 Actualiser</button>
+            </div>
+            
+            <div class="overflow-x-auto max-h-80">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date/Heure</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Nom</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Sujet</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Message</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="messages-contact-table" class="divide-y divide-gray-200">
+                        <!-- Messages chargés ici -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="no-messages-contact" class="p-8 text-center text-gray-500 hidden">
+                <p>📧 Aucun message de contact</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let connexions = [];
+        let posts = [];
+        let textesPdf = [];
+        let messagesContact = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshData();
+            refreshPosts();
+            refreshTextesPdf();
+            refreshMessagesContact();
+            setInterval(refreshData, 30000);
+            setInterval(refreshMessagesContact, 60000); // Actualiser les messages toutes les minutes
+            
+            // Gestionnaire du formulaire de post
+            document.getElementById('post-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await createPost();
+            });
+
+            // Gestionnaire du formulaire de texte PDF
+            document.getElementById('pdf-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await createTextePdf();
+            });
+        });
+
+        async function refreshData() {
+            try {
+                const response = await fetch('/api/connexions');
+                connexions = await response.json();
+                updateStats();
+                updateTable();
+            } catch (error) {
+                console.error('Erreur:', error);
+            }
+        }
+
+        function updateStats() {
+            const total = connexions.length;
+            const reussies = connexions.filter(c => c.success).length;
+            const echouees = total - reussies;
+            const tauxReussite = total > 0 ? Math.round((reussies / total) * 100) : 0;
+
+            document.getElementById('total-connexions').textContent = total;
+            document.getElementById('connexions-reussies').textContent = reussies;
+            document.getElementById('connexions-echouees').textContent = echouees;
+            document.getElementById('taux-reussite').textContent = tauxReussite + '%';
+        }
+
+        function updateTable() {
+            const tableBody = document.getElementById('connexions-table');
+            const noDataDiv = document.getElementById('no-data');
+
+            if (connexions.length === 0) {
+                tableBody.innerHTML = '';
+                noDataDiv.classList.remove('hidden');
+                return;
+            }
+
+            noDataDiv.classList.add('hidden');
+            
+            tableBody.innerHTML = connexions.slice(0, 20).map(connexion => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-3 py-2 text-xs">
+                        <div>${connexion.date}</div>
+                        <div class="text-gray-500">${connexion.time}</div>
+                    </td>
+                    <td class="px-3 py-2 font-medium">${connexion.username}</td>
+                    <td class="px-3 py-2">
+                        <span class="px-2 py-1 text-xs rounded-full ${connexion.success ? 'status-success' : 'status-failure'}">
+                            ${connexion.success ? '✓' : '✗'}
+                        </span>
+                    </td>
+                    <td class="px-3 py-2 text-xs">${connexion.ip || 'N/A'}</td>
+                    <td class="px-3 py-2">
+                        <button onclick="deleteConnexion(${connexion.id})" class="text-red-600 hover:text-red-800 text-xs">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function deleteConnexion(id) {
+            if (confirm('Supprimer cette connexion ?')) {
+                try {
+                    await fetch(`/api/connexions/${id}`, { method: 'DELETE' });
+                    refreshData();
+                } catch (error) {
+                    alert('Erreur lors de la suppression');
+                }
+            }
+        }
+
+        async function clearAllConnexions() {
+            if (confirm('Supprimer TOUTES les connexions ?')) {
+                try {
+                    await fetch('/api/connexions', { method: 'DELETE' });
+                    refreshData();
+                } catch (error) {
+                    alert('Erreur lors de la suppression');
+                }
+            }
+        }
+
+        function exportData() {
+            if (connexions.length === 0) {
+                alert('Aucune donnée à exporter');
+                return;
+            }
+
+            const csv = [
+                ['Date', 'Heure', 'Utilisateur', 'Statut', 'IP'],
+                ...connexions.map(c => [
+                    c.date,
+                    c.time,
+                    c.username,
+                    c.success ? 'Réussie' : 'Échouée',
+                    c.ip || 'N/A'
+                ])
+            ].map(row => row.join(',')).join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `connexions_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Fonctions pour gérer les posts
+        async function createPost() {
+            const title = document.getElementById('post-title').value;
+            const content = document.getElementById('post-content').value;
+            const image = document.getElementById('post-image').value;
+
+            if (!title || !content) {
+                alert('Titre et contenu sont obligatoires');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/posts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, content, image })
+                });
+
+                if (response.ok) {
+                    alert('Post publié avec succès !');
+                    document.getElementById('post-form').reset();
+                    refreshPosts();
+                } else {
+                    alert('Erreur lors de la publication');
+                }
+            } catch (error) {
+                alert('Erreur de connexion');
+            }
+        }
+
+        async function refreshPosts() {
+            try {
+                const response = await fetch('/api/posts');
+                posts = await response.json();
+                updatePostsTable();
+            } catch (error) {
+                console.error('Erreur:', error);
+            }
+        }
+
+        function updatePostsTable() {
+            const tableBody = document.getElementById('posts-table');
+            const noPostsDiv = document.getElementById('no-posts');
+
+            if (posts.length === 0) {
+                tableBody.innerHTML = '';
+                noPostsDiv.classList.remove('hidden');
+                return;
+            }
+
+            noPostsDiv.classList.add('hidden');
+            
+            tableBody.innerHTML = posts.map(post => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-3 py-2 text-xs">${post.date}</td>
+                    <td class="px-3 py-2 font-medium">${post.title}</td>
+                    <td class="px-3 py-2 text-xs">${post.content.substring(0, 50)}...</td>
+                    <td class="px-3 py-2">
+                        <button onclick="deletePost(${post.id})" class="text-red-600 hover:text-red-800 text-xs">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function deletePost(id) {
+            if (confirm('Supprimer ce post ?')) {
+                try {
+                    await fetch(`/api/posts/${id}`, { method: 'DELETE' });
+                    refreshPosts();
+                } catch (error) {
+                    alert('Erreur lors de la suppression');
+                }
+            }
+        }
+
+        function previewPost() {
+            const title = document.getElementById('post-title').value;
+            const content = document.getElementById('post-content').value;
+            
+            if (!title || !content) {
+                alert('Remplissez au moins le titre et le contenu');
+                return;
+            }
+            
+            alert(`Aperçu:\n\nTitre: ${title}\n\nContenu: ${content}`);
+        }
+
+        // Fonctions pour gérer les textes PDF
+        async function createTextePdf() {
+            const titre = document.getElementById('pdf-titre').value;
+            const description = document.getElementById('pdf-description').value;
+            const urlPdf = document.getElementById('pdf-url').value;
+
+            if (!titre || !description || !urlPdf) {
+                alert('Tous les champs sont obligatoires');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/textes-pdf', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ titre, description, urlPdf })
+                });
+
+                if (response.ok) {
+                    alert('Texte PDF ajouté avec succès !');
+                    document.getElementById('pdf-form').reset();
+                    refreshTextesPdf();
+                } else {
+                    alert('Erreur lors de l\'ajout');
+                }
+            } catch (error) {
+                alert('Erreur de connexion');
+            }
+        }
+
+        async function refreshTextesPdf() {
+            try {
+                const response = await fetch('/api/textes-pdf');
+                textesPdf = await response.json();
+                updateTextesPdfTable();
+            } catch (error) {
+                console.error('Erreur:', error);
+            }
+        }
+
+        function updateTextesPdfTable() {
+            const tableBody = document.getElementById('textes-pdf-table');
+            const noTextesPdfDiv = document.getElementById('no-textes-pdf');
+
+            if (textesPdf.length === 0) {
+                tableBody.innerHTML = '';
+                noTextesPdfDiv.classList.remove('hidden');
+                return;
+            }
+
+            noTextesPdfDiv.classList.add('hidden');
+            
+            tableBody.innerHTML = textesPdf.map(texte => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-3 py-2 text-xs">${texte.date}</td>
+                    <td class="px-3 py-2 font-medium">${texte.titre}</td>
+                    <td class="px-3 py-2 text-xs">${texte.description.substring(0, 50)}...</td>
+                    <td class="px-3 py-2">
+                        <a href="${texte.urlPdf}" target="_blank" class="text-blue-600 hover:text-blue-800 text-xs mr-2">👁️</a>
+                        <button onclick="deleteTextePdf(${texte.id})" class="text-red-600 hover:text-red-800 text-xs">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function deleteTextePdf(id) {
+            if (confirm('Supprimer ce texte PDF ?')) {
+                try {
+                    await fetch(`/api/textes-pdf/${id}`, { method: 'DELETE' });
+                    refreshTextesPdf();
+                } catch (error) {
+                    alert('Erreur lors de la suppression');
+                }
+            }
+        }
+
+        // Fonctions pour gérer les messages de contact
+        async function refreshMessagesContact() {
+            try {
+                const response = await fetch('/api/contact');
+                messagesContact = await response.json();
+                updateMessagesContactTable();
+            } catch (error) {
+                console.error('Erreur:', error);
+            }
+        }
+
+        function updateMessagesContactTable() {
+            const tableBody = document.getElementById('messages-contact-table');
+            const noMessagesContactDiv = document.getElementById('no-messages-contact');
+
+            if (messagesContact.length === 0) {
+                tableBody.innerHTML = '';
+                noMessagesContactDiv.classList.remove('hidden');
+                return;
+            }
+
+            noMessagesContactDiv.classList.add('hidden');
+            
+            tableBody.innerHTML = messagesContact.map(message => `
+                <tr class="hover:bg-gray-50 ${!message.lu ? 'bg-blue-50' : ''}">
+                    <td class="px-3 py-2 text-xs">
+                        <div>${message.date}</div>
+                        <div class="text-gray-500">${message.heure}</div>
+                    </td>
+                    <td class="px-3 py-2 font-medium">${message.nom}</td>
+                    <td class="px-3 py-2 text-xs">${message.email}</td>
+                    <td class="px-3 py-2 font-medium">${message.sujet}</td>
+                    <td class="px-3 py-2 text-xs" title="${message.message}">${message.message.substring(0, 50)}...</td>
+                    <td class="px-3 py-2">
+                        ${!message.lu ? `<button onclick="marquerCommeLu(${message.id})" class="text-blue-600 hover:text-blue-800 text-xs mr-2" title="Marquer comme lu">✓</button>` : '<span class="text-green-600 text-xs mr-2">✓</span>'}
+                        <button onclick="voirMessage(${message.id})" class="text-gray-600 hover:text-gray-800 text-xs mr-2" title="Voir le message">👁️</button>
+                        <button onclick="deleteMessageContact(${message.id})" class="text-red-600 hover:text-red-800 text-xs" title="Supprimer">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function marquerCommeLu(id) {
+            try {
+                await fetch(`/api/contact/${id}/lu`, { method: 'PUT' });
+                refreshMessagesContact();
+            } catch (error) {
+                alert('Erreur lors de la mise à jour');
+            }
+        }
+
+        function voirMessage(id) {
+            const message = messagesContact.find(m => m.id === id);
+            if (message) {
+                alert(`De: ${message.nom} (${message.email})\nSujet: ${message.sujet}\nDate: ${message.date} ${message.heure}\n\nMessage:\n${message.message}`);
+                if (!message.lu) {
+                    marquerCommeLu(id);
+                }
+            }
+        }
+
+        async function deleteMessageContact(id) {
+            if (confirm('Supprimer ce message ?')) {
+                try {
+                    await fetch(`/api/contact/${id}`, { method: 'DELETE' });
+                    refreshMessagesContact();
+                } catch (error) {
+                    alert('Erreur lors de la suppression');
+                }
+            }
+        }
+    </script>
+
+</body>
+</html>
