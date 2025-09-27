@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galerie Photos - Collège André Derain Théâtre</title>
+     <link rel="icon" type="image/png" href="favicon.ico">
+     <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GX16087P9G"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-GX16087P9G');
+</script>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Gris très clair */
+            color: #334155; /* Gris foncé */
+            overflow-x: hidden; /* Empêche le défilement horizontal */
+            display: flex; /* Utilisation de flexbox pour le layout */
+            flex-direction: column; /* Organise les éléments en colonne */
+            min-height: 100vh; /* La hauteur minimale est de 100% du viewport */
+        }
+        .section-padding {
+            padding: 4rem 1.5rem; /* Padding par défaut pour les sections */
+        }
+        @media (min-width: 640px) { /* Appliquer des paddings plus grands sur les écrans plus larges */
+            .section-padding {
+                padding: 6rem 2rem;
+            }
+        }
+        .nav-link {
+            position: relative;
+            display: inline-block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease-in-out;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease-in-out;
+            border-radius: 0.5rem;
+            z-index: -1;
+        }
+        .nav-link:hover::before {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+
+        /* Styles pour le bouton hamburger fixe */
+        .fixed-hamburger-icon {
+            position: fixed;
+            top: 1.5rem; /* Distance du haut */
+            right: 1.5rem; /* Distance de la droite */
+            z-index: 101; /* Au-dessus de l'overlay et du menu */
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            width: 30px;
+            height: 25px;
+            background-color: rgba(76, 29, 149, 0.8); /* Fond pour le bouton */
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s ease;
+        }
+        .fixed-hamburger-icon:hover {
+            background-color: rgba(76, 29, 149, 1);
+        }
+        .fixed-hamburger-icon span {
+            display: block;
+            height: 3px;
+            width: 100%;
+            background: #fff; /* Blanc pour le contraste des barres */
+            border-radius: 5px;
+            transition: all 0.3s ease-in-out;
+        }
+        .fixed-hamburger-icon.open span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+        .fixed-hamburger-icon.open span:nth-child(2) {
+            opacity: 0;
+        }
+        .fixed-hamburger-icon.open span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        /* Styles pour la navigation latérale (Side Nav) */
+        #side-nav {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 256px; /* Largeur du menu, équivalent à w-64 Tailwind */
+            height: 100%;
+            background-color: #4c1d95; /* bg-indigo-800 pour rester dans le thème */
+            color: #fff;
+            box-shadow: -4px 0 10px rgba(0, 0, 0, 0.2);
+            z-index: 100; /* Au-dessus de l'overlay */
+            transform: translateX(100%); /* Initialement caché hors de l'écran */
+            transition: transform 0.3s ease-out;
+            padding: 1.5rem; /* p-6 */
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem; /* space-y-6 */
+        }
+        #side-nav.open {
+            transform: translateX(0); /* Fait apparaître le menu */
+        }
+        /* Styles pour l'overlay (fond sombre derrière le menu latéral) */
+        #side-nav-overlay {
+            position: fixed;
+            inset: 0; /* top, right, bottom, left: 0 */
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 90; /* En dessous du menu latéral */
+            opacity: 0;
+            visibility: hidden; /* Utilisation de visibility pour cacher complètement */
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        #side-nav-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Styles des liens dans le menu latéral */
+        #side-nav .nav-link {
+            padding: 0.5rem 0.75rem; /* Ajuster le padding */
+            display: block; /* Liens sur toute la largeur */
+            text-align: left;
+            border-radius: 0.5rem; /* Arrondir les coins */
+            transition: background-color 0.3s ease;
+        }
+        #side-nav .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1); /* Effet de survol léger */
+        }
+        /* Bouton de fermeture dans le menu latéral */
+        #side-nav-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0.5rem; /* Pour une zone de clic plus grande */
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease;
+        }
+        #side-nav-close:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Empêcher le défilement du corps quand le menu latéral est ouvert */
+        body.no-scroll {
+            overflow: hidden;
+        }
+
+        /* Custom Animations (copied from main site) */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .animate-fade-in {
+            animation: fadeIn 1s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        /* Image hover effect */
+        .image-card:hover .image-overlay {
+            opacity: 1;
+        }
+
+        /* Fullscreen Modal Styles */
+        .image-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85); /* Fond semi-transparent foncé */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000; /* Assure que la modal est au-dessus de tout le reste */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+
+        .image-modal.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .image-modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            background-color: #ffffff; /* Fond blanc pour l'image */
+            padding: 1rem;
+            border-radius: 0.75rem; /* Coins arrondis */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden; /* Cache le débordement de l'image si elle est trop grande */
+        }
+
+        .image-modal-content img {
+            max-width: 100%;
+            max-height: 80vh; /* Max height to leave space for buttons/title */
+            display: block;
+            object-fit: contain; /* L'image s'ajuste sans être coupée */
+            border-radius: 0.5rem;
+        }
+
+        .modal-close-button {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background-color: rgba(255, 255, 255, 0.3); /* Bouton semi-transparent */
+            color: white;
+            border-radius: 9999px; /* Cercle */
+            padding: 0.5rem 0.75rem;
+            font-size: 1.5rem;
+            line-height: 1;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            z-index: 1010;
+        }
+
+        .modal-close-button:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .modal-buttons-container {
+            margin-top: 1rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* Responsive video container */
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio (height/width = 9/16 = 0.5625) */
+            height: 0;
+            overflow: hidden;
+            border-radius: 0.75rem; /* match other rounded elements */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* subtle shadow */
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            border-radius: 0.75rem; /* match parent for full rounded effect */
+        }
+
+        /* Styles pour les boutons de suppression */
+        .image-card:hover .absolute.top-2 {
+            opacity: 1 !important;
+        }
+
+        .image-card .absolute.top-2 {
+            transition: opacity 0.2s ease-in-out;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Bouton Hamburger Fixe sur le côté droit pour mobile -->
+    <button id="fixed-menu-toggle" class="fixed-hamburger-icon focus:outline-none md:hidden">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Overlay de la Navigation Latérale -->
+    <div id="side-nav-overlay"></div>
+
+    <!-- Menu de Navigation Latérale -->
+    <nav id="side-nav">
+        <button id="side-nav-close">&times;</button>
+        <div class="flex flex-col space-y-4 pt-12">
+            <a href="index.html" class="nav-link text-xl">Home</a>
+            <a href="actu.html" class="nav-link text-xl">Actualités</a>
+            <a href="gallerie.html" class="nav-link text-xl">Galerie Photos</a>
+            <a href="texte.html" class="nav-link text-xl">Textes</a>
+            <a href="chat.html" class="nav-link text-xl">chat en direct</a>
+            <a href="contact.html" class="nav-link text-xl">contact</a>
+        </div>
+    </nav>
+
+    <!-- En-tête (Header) -->
+    <header id="site-header" class="bg-gradient-to-r from-purple-700 to-indigo-800 text-white shadow-xl sticky top-0 z-50">
+        <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <!-- Titre du site - Toujours présent dans l'en-tête principal -->
+            <div class="text-2xl md:text-3xl font-extrabold rounded-lg p-2 hover:bg-white hover:text-purple-700 transition duration-300">
+                <a href="index.html">Collège André Derain Théâtre</a>
+            </div>
+            <!-- Liens de navigation pour desktop (cachés sur mobile) -->
+            <div class="hidden md:flex flex-grow justify-end space-x-8 text-lg">
+                <a href="index.html" class="nav-link text-xl">Home</a>
+                <a href="actu.html" class="nav-link text-xl">Actualités</a>
+                <a href="gallerie.html" class="nav-link text-xl">Galerie Photos</a>
+                <a href="texte.html" class="nav-link text-xl">Textes</a>
+                <a href="chat.html" class="nav-link text-xl">chat en direct</a>
+                <a href="contact.html" class="nav-link text-xl">contact</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="flex-grow">
+        <section class="section-padding bg-gray-100 animate-fade-in">
+            <div class="container mx-auto px-4">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-center text-gray-800 mb-12">Notre Galerie Photos</h1>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <!-- Image Card 1 -->
+                    <div class="relative rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105 image-card animate-fade-in-up cursor-pointer"
+                        data-img-src="https://i.ibb.co/k2qyYc0K/image0-1.jpg" data-img-alt="Répétition générale">
+                        <img src="https://i.ibb.co/k2qyYc0K/image0-1.jpg" alt="Salut Final"
+                            class="w-full h-48 object-cover">
+                        <div class="p-4 bg-white">
+                            <p class="text-lg font-semibold text-gray-800">Salut final</p>
+                            <p class="text-sm text-gray-600">Le salut final du spectacle de 2025</p>
+                        </div>
+                    </div>
+
+                    <!-- Image Card 2 -->
+                    <div class="relative rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105 image-card animate-fade-in-up delay-100 cursor-pointer"
+                        data-img-src="https://i.ibb.co/3yDsBnXZ/IMG-2292.jpg"
+                        data-img-alt="Scène de groupe">
+                        <img src="https://i.ibb.co/3yDsBnXZ/IMG-2292.jpg" alt="Scène salle de classe"
+                            class="w-full h-48 object-cover">
+                        <div class="p-4 bg-white">
+                            <p class="text-lg font-semibold text-gray-800">Scène salle de classe</p>
+                            <p class="text-sm text-gray-600">Pendant l'installation de la scène de la salle de classe.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Image Card 3 -->
+                    <div class="relative rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105 image-card animate-fade-in-up delay-200 cursor-pointer"
+                        data-img-src="https://i.ibb.co/TqTbsdzS/IMG-2298.jpg"
+                        data-img-alt="Coulisses">
+                        <img src="https://i.ibb.co/TqTbsdzS/IMG-2298.jpg" alt="scène de la carte du monde"
+                            class="w-full h-48 object-cover">
+                        <div class="p-4 bg-white">
+                            <p class="text-lg font-semibold text-gray-800">scène de la carte du monde</p>
+                            <p class="text-sm text-gray-600">scène de la carte du monde avec les têtes
+                             des acteurs.</p>
+                        </div>
+                    </div>
+
+                    <!-- Image Card 4 -->
+                    <div class="relative rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105 image-card animate-fade-in-up delay-300 cursor-pointer"
+                        data-img-src="https://i.ibb.co/jP61R9fH/Capture-d-cran-2025-06-18-171748.png"
+                        data-img-alt="Jour d'audition">
+                        <img src="https://i.ibb.co/jP61R9fH/Capture-d-cran-2025-06-18-171748.png" alt="Love Story"
+                            class="w-full h-48 object-cover">
+                        <div class="p-4 bg-white">
+                            <p class="text-lg font-semibold text-gray-800">Love Story</p>
+                            <p class="text-sm text-gray-600">Pendant Love Story </p>
+                        </div>
+                    </div>
+
+                    <!-- Image Card 5 -->
+                    <div class="relative rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105 image-card animate-fade-in-up delay-400 cursor-pointer"
+                        data-img-src="https://i.ibb.co/zVrXPjcV/Capture-d-cran-2025-06-18-173334.png"
+                        data-img-alt="Essayage des costumes">
+                        <img src="https://i.ibb.co/zVrXPjcV/Capture-d-cran-2025-06-18-173334.png"
+                            alt="Scène Plastique" class="w-full h-48 object-cover">
+                        <div class="p-4 bg-white">
+                            <p class="text-lg font-semibold text-gray-800">Scène Plastique</p>
+                            <p class="text-sm text-gray-600">La scène avec les sacs plastiques</p>
+                        </div>
+                    </div>
+
+                    <!-- Image Card 6 -->
+                    <div class="relative rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105 image-card animate-fade-in-up delay-500 cursor-pointer"
+                        data-img-src="https://i.ibb.co/F9NL9BD/Capture-d-cran-2025-06-18-173929.png"
+                        data-img-alt="Conception du décor">
+                        <img src="https://i.ibb.co/F9NL9BD/Capture-d-cran-2025-06-18-173929.png" alt="Scène Grunda"
+                            class="w-full h-48 object-cover">
+                        <div class="p-4 bg-white">
+                            <p class="text-lg font-semibold text-gray-800">Scène Grunda</p>
+                            <p class="text-sm text-gray-600">La scène de Grunda.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Vidéo -->
+                <div class="mt-16 text-center animate-fade-in-up delay-600">
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-gray-800 mb-8">La scène la plus aimée</h2>
+                    <div class="flex justify-center items-center">
+                        <div class="video-container">
+                            <iframe src="https://app.videas.fr/embed/media/ddef58ce-321e-4b78-9276-900d42ee05f3/"
+                                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                                allowfullscreen></iframe>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-4">
+                      Même moi je l'aime.
+                    </p>
+                </div>
+
+                <!-- Section Upload Utilisateur -->
+                <div class="mt-16 text-center">
+                    <button id="add-photo-btn" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-4 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105 text-xl">
+                        + Ajouter une Photo
+                    </button>
+                </div>
+
+                <!-- Photos Utilisateurs -->
+                <div id="user-photos-section" class="mt-16">
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-center text-gray-800 mb-8">Photos des Utilisateurs</h2>
+                    <div id="user-photos-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        <!-- Les photos utilisateur seront ajoutées ici dynamiquement -->
+                    </div>
+                </div>
+
+                <div class="text-center mt-12">
+                    <a href="index.html" class="inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105">
+                        Retour à l'accueil
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Pied de page (Footer) - Repris du style de la page principale -->
+    <footer class="bg-gray-800 text-gray-400 py-8 px-4 text-center border-t border-gray-700 w-full">
+        <p>&copy; 2025 Collège André Derain - Club Théâtre. Tous droits réservés.</p>
+        <p class="text-sm mt-2">
+            Conçu avec passion pour la scène à Chambourcy.
+        </p>
+    </footer>
+
+    <!-- Fullscreen Image Modal -->
+    <div id="image-modal" class="image-modal">
+        <div class="image-modal-content">
+            <button id="modal-close-button" class="modal-close-button">&times;</button>
+            <img id="modal-image" src="" alt="Image agrandie">
+            <div class="modal-buttons-container">
+                <a id="modal-download-button" href="#" download
+                    class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-full shadow-md transition duration-300 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    Télécharger
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Upload Photo -->
+    <div id="upload-modal" class="image-modal">
+        <div class="image-modal-content max-w-md">
+            <button id="upload-modal-close" class="modal-close-button">&times;</button>
+            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Ajouter une Photo</h3>
+
+            <!-- Avertissement -->
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    </svg>
+                    <strong>Attention !</strong>
+                </div>
+                <p class="text-sm mt-1">Assurez-vous que les visages sont floutés avant de télécharger l'image.</p>
+            </div>
+
+            <form id="upload-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Description de la photo</label>
+                    <input type="text" id="photo-description" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Ex: Répétition de janvier 2025" required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sélectionner une image</label>
+                    <input type="file" id="photo-file" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                </div>
+
+                <div class="flex space-x-3 pt-4">
+                    <button type="button" id="upload-cancel" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition duration-300">
+                        Annuler
+                    </button>
+                    <button type="submit" id="upload-submit" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">
+                        Publier
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript pour la gestion du menu latéral
+        const fixedMenuToggle = document.getElementById('fixed-menu-toggle');
+        const sideNav = document.getElementById('side-nav');
+        const sideNavOverlay = document.getElementById('side-nav-overlay');
+        const sideNavCloseButton = document.getElementById('side-nav-close');
+        const sideNavLinks = document.querySelectorAll('#side-nav .nav-link');
+
+        function toggleSideNav() {
+            sideNav.classList.toggle('open');
+            sideNavOverlay.classList.toggle('open');
+            if (fixedMenuToggle) { // Assurez-vous que le bouton existe avant de le manipuler
+                fixedMenuToggle.classList.toggle('open');
+            }
+            document.body.classList.toggle('no-scroll');
+        }
+
+        // Écouteurs d'événements pour le nouveau menu latéral
+        if (fixedMenuToggle) {
+            fixedMenuToggle.addEventListener('click', toggleSideNav);
+        }
+        if (sideNavCloseButton) {
+            sideNavCloseButton.addEventListener('click', toggleSideNav);
+        }
+        if (sideNavOverlay) {
+            sideNavOverlay.addEventListener('click', toggleSideNav);
+        }
+        sideNavLinks.forEach(link => {
+            link.addEventListener('click', toggleSideNav);
+        });
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768 && sideNav.classList.contains('open')) {
+                toggleSideNav();
+            }
+        });
+
+        // JavaScript pour la modal d'image en plein écran (conservé)
+        const imageModal = document.getElementById('image-modal');
+        const modalImage = document.getElementById('modal-image');
+        const modalCloseButton = document.getElementById('modal-close-button');
+        const modalDownloadButton = document.getElementById('modal-download-button');
+        const galleryImages = document.querySelectorAll('.image-card');
+
+        galleryImages.forEach(card => {
+            card.addEventListener('click', () => {
+                const imgSrc = card.dataset.imgSrc;
+                const imgAlt = card.dataset.imgAlt;
+
+                modalImage.src = imgSrc;
+                modalImage.alt = imgAlt;
+                modalDownloadButton.href = imgSrc;
+                modalDownloadButton.setAttribute('download', imgAlt.replace(/\s+/g, '_').toLowerCase() + '.jpg');
+
+                imageModal.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            });
+        });
+
+        modalCloseButton.addEventListener('click', () => {
+            imageModal.classList.remove('open');
+            document.body.style.overflow = '';
+        });
+
+        imageModal.addEventListener('click', (e) => {
+            if (e.target === imageModal) {
+                imageModal.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+        });
+
+        // JavaScript pour l'upload de photos utilisateur
+        const addPhotoBtn = document.getElementById('add-photo-btn');
+        const uploadModal = document.getElementById('upload-modal');
+        const uploadModalClose = document.getElementById('upload-modal-close');
+        const uploadCancel = document.getElementById('upload-cancel');
+        const uploadForm = document.getElementById('upload-form');
+        const userPhotosGrid = document.getElementById('user-photos-grid');
+
+        // Récupérer le nom d'utilisateur depuis le localStorage
+        const username = localStorage.getItem('currentUser') || 'admin'; // Par défaut 'admin' si non trouvé
+
+        function openUploadModal() {
+            uploadModal.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeUploadModal() {
+            uploadModal.classList.remove('open');
+            document.body.style.overflow = '';
+            uploadForm.reset(); // Réinitialise le formulaire
+        }
+
+        addPhotoBtn.addEventListener('click', openUploadModal);
+        uploadModalClose.addEventListener('click', closeUploadModal);
+        uploadCancel.addEventListener('click', closeUploadModal);
+
+        // Fermer la modal si on clique en dehors du contenu
+        uploadModal.addEventListener('click', (e) => {
+            if (e.target === uploadModal) {
+                closeUploadModal();
+            }
+        });
+
+        // Fonction pour convertir le fichier en base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // Fonction pour créer une card photo utilisateur
+        function createUserPhotoCard(photo) {
+            const card = document.createElement('div');
+            card.className = 'relative rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105 image-card animate-fade-in-up cursor-pointer';
+            card.setAttribute('data-img-src', photo.imageUrl);
+            card.setAttribute('data-img-alt', photo.description);
+
+            // Vérifier si l'utilisateur peut supprimer cette photo (admin ou propriétaire)
+            const canDelete = username === 'admin' || username === photo.username;
+            const deleteButtonHTML = canDelete ? `
+                <button onclick="deleteUserPhoto(${photo.id}, event)" 
+                        class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-content-center opacity-0 hover:opacity-100 transition-opacity duration-200 z-10"
+                        title="Supprimer cette photo">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            ` : '';
+
+            card.innerHTML = `
+                ${deleteButtonHTML}
+                <img src="${photo.imageUrl}" alt="${photo.description}" class="w-full h-48 object-cover">
+                <div class="p-4 bg-white">
+                    <p class="text-lg font-semibold text-gray-800">${photo.description}</p>
+                    <p class="text-sm text-purple-600 font-medium">Par ${photo.username}</p>
+                    <p class="text-sm text-gray-500">${photo.date || new Date().toLocaleDateString()}</p>
+                    ${username === 'admin' ? `<p class="text-xs text-red-500 mt-1">ID: ${photo.id}</p>` : ''}
+                </div>
+            `;
+
+            // Ajouter l'événement de clic pour ouvrir en grand (seulement sur l'image, pas sur le bouton supprimer)
+            const img = card.querySelector('img');
+            const contentDiv = card.querySelector('.p-4');
+            
+            [img, contentDiv].forEach(element => {
+                element.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    modalImage.src = photo.imageUrl;
+                    modalImage.alt = photo.description;
+                    modalDownloadButton.href = photo.imageUrl;
+                    modalDownloadButton.setAttribute('download', photo.description.replace(/\s+/g, '_').toLowerCase() + '.jpg');
+
+                    imageModal.classList.add('open');
+                    document.body.style.overflow = 'hidden';
+                });
+            });
+
+            return card;
+        }
+
+        // Fonction pour supprimer une photo utilisateur
+        async function deleteUserPhoto(photoId, event) {
+            event.stopPropagation(); // Empêcher l'ouverture de la modal
+
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cette photo ?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/user-photos/${photoId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    // Supprimer la card de la grille
+                    const cardToRemove = document.querySelector(`[onclick*="${photoId}"]`).closest('.image-card');
+                    if (cardToRemove) {
+                        cardToRemove.remove();
+                    }
+
+                    // Afficher un message de succès
+                    showSuccessMessage('Photo supprimée avec succès !');
+                } else {
+                    throw new Error('Erreur lors de la suppression');
+                }
+            } catch (error) {
+                console.error('Erreur lors de la suppression:', error);
+                alert('Erreur lors de la suppression de la photo. Veuillez réessayer.');
+            }
+        }
+
+        // Fonction pour charger les photos utilisateur depuis l'API
+        async function loadUserPhotos() {
+            try {
+                const response = await fetch('/api/user-photos');
+                const photos = await response.json();
+
+                userPhotosGrid.innerHTML = ''; // Nettoyer la grille avant d'ajouter de nouvelles photos
+                photos.forEach(photo => {
+                    const card = createUserPhotoCard(photo);
+                    userPhotosGrid.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Erreur lors du chargement des photos:', error);
+                
+                // Données de fallback en cas d'erreur
+                const photos = [
+                    { id: 1, description: "Première répétition", imageUrl: "https://via.placeholder.com/300x200/800080/FFFFFF?text=Repet+1", username: "eleve1", date: "2024-01-15" },
+                    { id: 2, description: "Costumes", imageUrl: "https://via.placeholder.com/300x200/4B0082/FFFFFF?text=Costumes", username: "eleve2", date: "2024-01-20" },
+                    { id: 3, description: "Scène finale", imageUrl: "https://via.placeholder.com/300x200/6A5ACD/FFFFFF?text=Scene+Finale", username: "admin", date: "2024-01-25" }
+                ];
+
+                userPhotosGrid.innerHTML = '';
+                photos.forEach(photo => {
+                    const card = createUserPhotoCard(photo);
+                    userPhotosGrid.appendChild(card);
+                });
+            }
+        }
+
+        // Fonction pour afficher un message de succès
+        function showSuccessMessage(message) {
+            const successMessage = document.createElement('div');
+            successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in';
+            successMessage.textContent = message;
+            document.body.appendChild(successMessage);
+
+            setTimeout(() => {
+                if(successMessage.parentNode) {
+                    successMessage.parentNode.removeChild(successMessage);
+                }
+            }, 3000);
+        }
+
+        // Gestion du formulaire d'upload
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const description = document.getElementById('photo-description').value;
+            const fileInput = document.getElementById('photo-file');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Veuillez sélectionner une image');
+                return;
+            }
+
+            try {
+                // Convertir le fichier en base64
+                const imageUrl = await fileToBase64(file);
+
+                const photoData = {
+                    description: description,
+                    imageUrl: imageUrl,
+                    username: username
+                };
+
+                // Envoyer à l'API
+                const response = await fetch('/api/user-photos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(photoData)
+                });
+
+                if (!response.ok) throw new Error('Erreur serveur');
+
+                const result = await response.json();
+                
+                closeUploadModal();
+                
+                // Afficher un message de succès
+                showSuccessMessage('Photo ajoutée avec succès !');
+
+                // Ajouter la nouvelle photo à la grille
+                const newCard = createUserPhotoCard(result.photo);
+                userPhotosGrid.prepend(newCard); // Ajoute au début pour la voir directement
+
+            } catch (error) {
+                console.error('Erreur lors de l\'upload:', error);
+                alert('Erreur lors de l\'upload de la photo. Veuillez réessayer.');
+            }
+        });
+
+        // Charger les photos au chargement initial de la page
+        document.addEventListener('DOMContentLoaded', loadUserPhotos);
+    </script>
+
+</body>
+
+</html>

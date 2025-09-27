@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion au Théâtre</title>
+    <link rel="icon" type="image/png" href="favicon.ico">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #login-form {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 400px;
+            width: 90%;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        #login-form h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            text-align: center;
+        }
+
+        #login-form label {
+            font-weight: 500;
+            color: #475569;
+        }
+
+        #login-form input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            transition: border-color 0.2s ease-in-out;
+        }
+
+        #login-form input:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+
+        #login-form button {
+            background-color: #6366f1;
+            color: white;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+            cursor: pointer;
+        }
+
+        #login-form button:hover {
+            background-color: #4f46e5;
+        }
+
+        #custom-alert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fee2e2;
+            color: #b91c1c;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Formulaire de connexion -->
+    <form id="login-form">
+        <h2>Se connecter</h2>
+        <div>
+            <label for="username">Nom d'utilisateur</label>
+            <input type="text" id="username" name="username" placeholder="Entrez votre nom d'utilisateur" required>
+        </div>
+        <div>
+            <label for="password">Mot de passe</label>
+            <input type="password" id="password" name="password" placeholder="Entrez votre mot de passe" required>
+        </div>
+        <button type="submit">Se connecter</button>
+    </form>
+
+    <!-- Message d'alerte personnalisé -->
+    <div id="custom-alert" role="alert"></div>
+
+    <script>
+        // Références aux éléments HTML
+        const loginForm = document.getElementById('login-form');
+        const customAlert = document.getElementById('custom-alert');
+
+        // Liste des utilisateurs autorisés.
+        // ATTENTION : Cette méthode n'est pas sécurisée pour un site web réel.
+        const users = [
+            { username: 'admin', password: '1604' },
+            { username: 'iris', password: '2401' },
+            { username: 'lecabec', password: 'pass1' }
+        ];
+
+        // Fonction pour afficher un message d'alerte personnalisé
+        function showAlert(message) {
+            customAlert.textContent = message;
+            customAlert.style.display = 'block';
+            setTimeout(() => {
+                customAlert.style.display = 'none';
+            }, 3000);
+        }
+
+        // Vérifie si l'utilisateur est déjà connecté au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            const loggedIn = localStorage.getItem('loggedIn');
+            if (loggedIn === 'true') {
+                // Si l'utilisateur est déjà connecté, on le redirige directement vers home.html
+                window.location.href = 'home.html';
+            }
+        });
+
+        // Fonction pour enregistrer la tentative de connexion
+        function logConnexion(username, success) {
+            fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: username,
+                    success: success,
+                    userAgent: navigator.userAgent,
+                    ip: 'N/A' // L'IP sera récupérée côté serveur
+                })
+            }).catch(error => {
+                console.log('Erreur lors de l\'enregistrement de la connexion:', error);
+            });
+        }
+
+        // Écouteur pour la soumission du formulaire de connexion
+        loginForm.addEventListener('submit', function(event) {
+            event.preventDefault(); // Empêche le rechargement de la page
+
+            const username = loginForm.username.value;
+            const password = loginForm.password.value;
+
+            // Vérifie si les informations sont dans la liste des utilisateurs
+            const foundUser = users.find(user => user.username === username && user.password === password);
+
+            if (foundUser) {
+                // Enregistrer la connexion réussie
+                logConnexion(username, true);
+                // Si la connexion est réussie, on enregistre l'état et le nom d'utilisateur
+                localStorage.setItem('loggedIn', 'true');
+                localStorage.setItem('currentUser', username);
+                window.location.href = 'home.html';
+            } else {
+                // Enregistrer la tentative de connexion échouée
+                logConnexion(username, false);
+                // Si la connexion échoue, on affiche une alerte
+                showAlert("Nom d'utilisateur ou mot de passe incorrect.");
+                loginForm.reset(); // Réinitialise les champs du formulaire
+            }
+        });
+    </script>
+</body>
+</html>
